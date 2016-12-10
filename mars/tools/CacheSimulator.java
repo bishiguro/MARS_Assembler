@@ -76,13 +76,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       private String[] cacheBlockCountChoices = {"1","2","4","8","16","32","64","128","256","512","1024","2048"};
       private String[] placementPolicyChoices = {"Direct Mapping", "Fully Associative", "N-way Set Associative" };
       private final int DIRECT = 0, FULL = 1, SET = 2; // NOTE: these have to match placementPolicyChoices order!
-      private String[] replacementPolicyChoices =  {"LRU","Random", "MRU"}; // CHANGE: MRU policy name
-      private final int LRU = 0, RANDOM = 1, MRU = 2; // NOTE: these have to match replacementPolicyChoices order! // CHANGE: MRU policy index
+      private String[] replacementPolicyChoices =  {"LRU","Random", "MRU", "FIFO"}; // CHANGE: MRU, FIFO policy name
+      private final int LRU = 0, RANDOM = 1, MRU = 2, FIFO = 3; // NOTE: these have to match replacementPolicyChoices order! // CHANGE: MRU, FIFO policy index
       private String[] cacheSetSizeChoices; // will change dynamically based on the other selections
       private int defaultCacheBlockSizeIndex    = 2;
       private int defaultCacheBlockCountIndex   = 3;
       private int defaultPlacementPolicyIndex   = DIRECT;
-      private int defaultReplacementPolicyIndex = MRU;
+      private int defaultReplacementPolicyIndex = FIFO;
       private int defaultCacheSetSizeIndex      = 0;
       
       // Cache-related data structures
@@ -762,10 +762,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             super(numberOfBlocks, blockSizeInWords, setSizeInBlocks);
          }
          
-         private final int SET_FULL=0, HIT=1, MISS=2;
+          Queue<CacheBlock> fifoQueue = new LinkedList<CacheBlock>();
+
+          private final int SET_FULL=0, HIT=1, MISS=2;
          
-         // This method works for any of the placement policies: 
-         // direct mapped, full associative or n-way set associative.
+          // This method works for any of the placement policies: 
+          // direct mapped, full associative or n-way set associative.
           public CacheAccessResult isItAHitThenReadOnMiss(int address) {
             int result = SET_FULL;
             int firstBlock = getFirstBlockToSearch(address);
@@ -793,6 +795,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                   block.valid = true;
                   block.tag = getTag(address);
                   block.mostRecentAccessTime = memoryAccessCount;
+                  fifoQueue.add(block);
                   break;
                }
                if (debug) //System.out.print
@@ -800,13 +803,14 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             }
             if (result == SET_FULL) {
               //select one to replace and replace it...
-               if (debug) //System.out.print
+                if (debug) //System.out.print
                   writeLog("   MISS due to FULL SET");
-               int blockToReplace = selectBlockToReplace(firstBlock,lastBlock);
-               block = blocks[blockToReplace];
-               block.tag = getTag(address);
-               block.mostRecentAccessTime = memoryAccessCount;
-               blockNumber = blockToReplace;
+                int blockToReplace = selectBlockToReplace(firstBlock,lastBlock);
+                block = blocks[blockToReplace];
+                block.tag = getTag(address);
+                block.mostRecentAccessTime = memoryAccessCount;
+                blockNumber = blockToReplace;
+                fifoQueue.add(blocks[blockNumber]);
             }
             return new CacheAccessResult(result==HIT, blockNumber);
          }      
@@ -835,7 +839,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                         writeLog(" -- LRU replace block "+replaceBlock+"; unused since ("+leastRecentAccessTime+")\n");
                      break;
                   case MRU: // CHANGE: MRU case
-                  default:
                      int leastRAT = 0; // all of them have to be more than this
                      for (int block = first; block <= last; block++) {
                         if (blocks[block].mostRecentAccessTime > leastRAT) {
@@ -846,7 +849,24 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                      if (debug) //System.out.print
                         writeLog(" -- MRU replace block "+replaceBlock+"; unused since ("+leastRAT+")\n");
                      break;
-                  
+                  case FIFO:
+                  default:
+                      CacheBlock targetBlock;
+
+                      if (!fifoQueue.isEmpty()) {
+                        targetBlock = fifoQueue.remove();
+                        
+                        for (int blockNumber = first; blockNumber <= last; blockNumber++) {
+                          CacheBlock block = blocks[blockNumber];
+                          if (block.valid && block.tag==targetBlock.tag) {//  it's a hit!
+                            replaceBlock = blockNumber;
+                            writeLog("***FIFO replace block"+replaceBlock);
+                            break;
+                          }  
+                        }                                        
+                      } else {
+                        writeLog("FIFO Queue is empty");
+                      }
                }
             }
             return replaceBlock;

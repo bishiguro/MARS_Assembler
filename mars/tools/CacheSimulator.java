@@ -76,8 +76,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       private String[] cacheBlockCountChoices = {"1","2","4","8","16","32","64","128","256","512","1024","2048"};
       private String[] placementPolicyChoices = {"Direct Mapping", "Fully Associative", "N-way Set Associative" };
       private final int DIRECT = 0, FULL = 1, SET = 2; // NOTE: these have to match placementPolicyChoices order!
-      private String[] replacementPolicyChoices =  {"LRU","Random", "MRU", "FIFO"}; // CHANGE: MRU, FIFO policy name
-      private final int LRU = 0, RANDOM = 1, MRU = 2, FIFO = 3; // NOTE: these have to match replacementPolicyChoices order! // CHANGE: MRU, FIFO policy index
+      private String[] replacementPolicyChoices =  {"LRU","Random", "MRU", "FIFO"}; // CHANGE: added the MRU and FIFO policies
+      private final int LRU = 0, RANDOM = 1, MRU = 2, FIFO = 3; // NOTE: these have to match replacementPolicyChoices order! // CHANGE: added MRU and FIFO policy indices
       private String[] cacheSetSizeChoices; // will change dynamically based on the other selections
       private int defaultCacheBlockSizeIndex    = 2;
       private int defaultCacheBlockCountIndex   = 3;
@@ -762,7 +762,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             super(numberOfBlocks, blockSizeInWords, setSizeInBlocks);
          }
          
-          Queue<CacheBlock> fifoQueue = new LinkedList<CacheBlock>();
+          Queue<CacheBlock> fifoQueue = new LinkedList<CacheBlock>(); // queue of CacheBlocks, used for the FIFO policy
 
           private final int SET_FULL=0, HIT=1, MISS=2;
          
@@ -795,7 +795,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                   block.valid = true;
                   block.tag = getTag(address);
                   block.mostRecentAccessTime = memoryAccessCount;
-                  fifoQueue.add(block);
+                  fifoQueue.add(block); // CHANGE: if there is a cache miss, we insert the block that is replacing old data into the queue
                   break;
                }
                if (debug) //System.out.print
@@ -810,7 +810,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                 block.tag = getTag(address);
                 block.mostRecentAccessTime = memoryAccessCount;
                 blockNumber = blockToReplace;
-                fifoQueue.add(blocks[blockNumber]);
+                fifoQueue.add(blocks[blockNumber]); // CHANGE: if the cache is full, we insert the block that is replacing old data into the queue
             }
             return new CacheAccessResult(result==HIT, blockNumber);
          }      
@@ -827,7 +827,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                         writeLog(" -- Random replace block "+replaceBlock+"\n");
                      break;
                   case LRU :
-                  //default :
                      int leastRecentAccessTime = memoryAccessCount; // all of them have to be less than this
                      for (int block = first; block <= last; block++) {
                         if (blocks[block].mostRecentAccessTime < leastRecentAccessTime) {
@@ -839,21 +838,21 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                         writeLog(" -- LRU replace block "+replaceBlock+"; unused since ("+leastRecentAccessTime+")\n");
                      break;
                   case MRU: // CHANGE: MRU case
-                     int leastRAT = 0; // all of them have to be more than this
+                     int mostRAT = 0; // keep track of the block that has been most recently accessed
                      for (int block = first; block <= last; block++) {
-                        if (blocks[block].mostRecentAccessTime > leastRAT) {
+                        if (blocks[block].mostRecentAccessTime > mostRAT) {
                            leastRAT = blocks[block].mostRecentAccessTime;
-                           replaceBlock = block;
+                           replaceBlock = block; // at the end of the loop, this block should have the highest mostRecentAccess time value
                         }
                      }
                      if (debug) //System.out.print
                         writeLog(" -- MRU replace block "+replaceBlock+"; unused since ("+leastRAT+")\n");
                      break;
-                  case FIFO:
+                  case FIFO: // CHANGE: FIFO case
                   default:
                       CacheBlock targetBlock;
 
-                      if (!fifoQueue.isEmpty()) {
+                      if (!fifoQueue.isEmpty()) { // if the queue is not empty, the target block to replace is the next block to be removed
                         targetBlock = fifoQueue.remove();
                         
                         for (int blockNumber = first; blockNumber <= last; blockNumber++) {

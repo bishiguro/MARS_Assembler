@@ -9,6 +9,7 @@
    import mars.mips.hardware.*;
 
 /*
+naming
 Copyright (c) 2003-2011,  Pete Sanderson and Kenneth Vollmar
 
 Developed by Pete Sanderson (psanderson@otterbein.edu)

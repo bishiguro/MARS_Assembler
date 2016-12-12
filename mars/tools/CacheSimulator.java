@@ -14,35 +14,35 @@ Copyright (c) 2003-2011,  Pete Sanderson and Kenneth Vollmar
 Developed by Pete Sanderson (psanderson@otterbein.edu)
 and Kenneth Vollmar (kenvollmar@missouristate.edu)
 
-Permission is hereby granted, free of charge, to any person obtaining 
-a copy of this software and associated documentation files (the 
-"Software"), to deal in the Software without restriction, including 
-without limitation the rights to use, copy, modify, merge, publish, 
-distribute, sublicense, and/or sell copies of the Software, and to 
-permit persons to whom the Software is furnished to do so, subject 
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject
 to the following conditions:
 
-The above copyright notice and this permission notice shall be 
+The above copyright notice and this permission notice shall be
 included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR 
-ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 (MIT license, http://www.opensource.org/licenses/mit-license.html)
  */
-   
+
    /**
     * A data cache simulator.  It can be run either as a stand-alone Java application having
     * access to the mars package, or through MARS as an item in its Tools menu.  It makes
     * maximum use of methods inherited from its abstract superclass AbstractMarsToolOrApp.
     * Pete Sanderson, v 1.0: 16-18 October 2006, v 1.1: 7 November 2006. v 1.2: 23 December 2010.
     * <p>Version 1.2 fixes a bug in the hit/miss animator under full or N-way set associative. It was
-    * animating the block of initial access (first block of set).  Now it animates the block 
+    * animating the block of initial access (first block of set).  Now it animates the block
     * of final access (where address found or stored).  Also added log display to GUI (previously System.out).</p>
     */
     public class CacheSimulator extends AbstractMarsToolAndApplication {
@@ -51,7 +51,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       private static String version = "Version 1.2";
       private static String heading =  "Simulate and illustrate data cache performance";
       // Major GUI components
-      private JComboBox cacheBlockSizeSelector, cacheBlockCountSelector, 
+      private JComboBox cacheBlockSizeSelector, cacheBlockCountSelector,
                         cachePlacementSelector, cacheReplacementSelector,
                         cacheSetSizeSelector;
       private JTextField memoryAccessCountDisplay, cacheHitCountDisplay, cacheMissCountDisplay,
@@ -59,17 +59,17 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                          cacheSizeDisplay;
       private JProgressBar cacheHitRateDisplay;
       private Animation animations;
-      
+
       private JPanel logPanel;
       private JScrollPane logScroll;
       private JTextArea logText;
       private JCheckBox logShow;
-      
+
       // Some GUI settings
       private EmptyBorder emptyBorder = new EmptyBorder(4,4,4,4);
       private Font countFonts = new Font("Times", Font.BOLD,12);
       private Color backgroundColor = Color.WHITE;
-      
+
       // Values for Combo Boxes
       private int[] cacheBlockSizeChoicesInt, cacheBlockCountChoicesInt;
       private String[] cacheBlockSizeChoices  = {"1","2","4","8","16","32","64","128","256","512","1024","2048"};
@@ -84,15 +84,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       private int defaultPlacementPolicyIndex   = DIRECT;
       private int defaultReplacementPolicyIndex = FIFO;
       private int defaultCacheSetSizeIndex      = 0;
-      
+
       // Cache-related data structures
-      private AbstractCache theCache;           
+      private AbstractCache theCache;
       private int memoryAccessCount, cacheHitCount, cacheMissCount;
       private double cacheHitRate;
-      
+
       // RNG used for random replacement policy.  For testing, set seed for reproducible stream
-      private Random randu = new Random(0);  
-      
+      private Random randu = new Random(0);
+
       /**
        * Simple constructor, likely used to run a stand-alone cache simulator.
        * @param title String containing title for title bar
@@ -101,17 +101,17 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        public CacheSimulator(String title, String heading) {
          super(title,heading);
       }
-       
+
        /**
         *  Simple constructor, likely used by the MARS Tools menu mechanism
         */
        public CacheSimulator() {
          super ("Data Cache Simulation Tool, "+version, heading);
       }
-          
-          
+
+
       /**
-       * Main provided for pure stand-alone use.  Recommended stand-alone use is to write a 
+       * Main provided for pure stand-alone use.  Recommended stand-alone use is to write a
        * driver program that instantiates a CacheSimulator object then invokes its go() method.
        * "stand-alone" means it is not invoked from the MARS Tools menu.  "Pure" means there
        * is no driver program to invoke the Cache Simulator.
@@ -119,22 +119,22 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        public static void main(String[] args) {
          new CacheSimulator("Data Cache Simulator stand-alone, "+version,heading).go();
       }
-      
-   
+
+
        /**
-        *  Required MarsTool method to return Tool name.  
+        *  Required MarsTool method to return Tool name.
         *  @return  Tool name.  MARS will display this in menu item.
         */
        public String getName() {
          return "Data Cache Simulator";
       }
-      
-      
+
+
       /**
        *  Method that constructs the main cache simulator display area.  It is organized vertically
        *  into three major components: the cache configuration which an be modified
        *  using combo boxes, the cache performance which is updated as the
-       *  attached MIPS program executes, and the runtime log which is optionally used 
+       *  attached MIPS program executes, and the runtime log which is optionally used
        *  to display log of each cache access.
        *  @return the GUI component containing these three areas
        */
@@ -146,7 +146,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          results.add(buildLogArea());
          return results;
       }
-      
+
       ////////////////////////////////////////////////////////////////////////////
        private JComponent buildLogArea() {
          logPanel = new JPanel();
@@ -156,7 +156,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          logShow = new JCheckBox("Enabled",debug);
          logShow.addItemListener(
                 new ItemListener() {
-                   public void itemStateChanged(ItemEvent e) { 
+                   public void itemStateChanged(ItemEvent e) {
                      debug = e.getStateChange() == ItemEvent.SELECTED;
                      resetLogDisplay();
                      logText.setEnabled(debug);
@@ -173,8 +173,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          logPanel.add(logScroll);
          return logPanel;
       }
-   
-   
+
+
       ////////////////////////////////////////////////////////////////////////////
        private JComponent buildOrganizationArea() {
          JPanel organization = new JPanel(new GridLayout(3,2));
@@ -191,13 +191,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                      updateCacheSetSizeSelector();
                      reset();
                   }
-               });   
-         
+               });
+
          cacheReplacementSelector = new JComboBox(replacementPolicyChoices);
          cacheReplacementSelector.setEditable(false);
          cacheReplacementSelector.setBackground(backgroundColor);
          cacheReplacementSelector.setSelectedIndex(defaultReplacementPolicyIndex);
-                                 
+
          cacheBlockSizeSelector = new JComboBox(cacheBlockSizeChoices);
          cacheBlockSizeSelector.setEditable(false);
          cacheBlockSizeSelector.setBackground(backgroundColor);
@@ -223,8 +223,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                      updateCacheSizeDisplay();
                      animations.fillAnimationBoxWithCacheBlocks();
                   }
-               });         
-      
+               });
+
          cacheSetSizeSelector = new JComboBox(cacheSetSizeChoices);
          cacheSetSizeSelector.setEditable(false);
          cacheSetSizeSelector.setBackground(backgroundColor);
@@ -235,13 +235,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                      reset();
                   }
                });
-                     
+
          // ALL COMPONENTS FOR "CACHE ORGANIZATION" SECTION
          JPanel placementPolicyRow = getPanelWithBorderLayout();
          placementPolicyRow.setBorder(emptyBorder);
          placementPolicyRow.add(new JLabel("Placement Policy "),BorderLayout.WEST);
          placementPolicyRow.add(cachePlacementSelector,BorderLayout.EAST);
-      
+
          JPanel replacementPolicyRow = getPanelWithBorderLayout();
          replacementPolicyRow.setBorder(emptyBorder);
          replacementPolicyRow.add(new JLabel("Block Replacement Policy "),BorderLayout.WEST);
@@ -250,12 +250,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          replacementPolicyDisplay.setBackground(backgroundColor);
          replacementPolicyDisplay.setHorizontalAlignment(JTextField.RIGHT); */
          replacementPolicyRow.add(cacheReplacementSelector, BorderLayout.EAST);
-      
+
          JPanel cacheSetSizeRow = getPanelWithBorderLayout();
          cacheSetSizeRow.setBorder(emptyBorder);
          cacheSetSizeRow.add(new JLabel("Set size (blocks) "),BorderLayout.WEST);
          cacheSetSizeRow.add(cacheSetSizeSelector,BorderLayout.EAST);
-                  
+
       // Cachable address range "selection" removed for now...
       /*
          JPanel cachableAddressesRow = getPanelWithBorderLayout();
@@ -271,12 +271,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          cacheNumberBlocksRow.setBorder(emptyBorder);
          cacheNumberBlocksRow.add(new JLabel("Number of blocks "), BorderLayout.WEST);
          cacheNumberBlocksRow.add(cacheBlockCountSelector, BorderLayout.EAST);
-         
+
          JPanel cacheBlockSizeRow = getPanelWithBorderLayout();
          cacheBlockSizeRow.setBorder(emptyBorder);
          cacheBlockSizeRow.add(new JLabel("Cache block size (words) "), BorderLayout.WEST);
          cacheBlockSizeRow.add(cacheBlockSizeSelector, BorderLayout.EAST);
-         
+
          JPanel cacheTotalSizeRow = getPanelWithBorderLayout();
          cacheTotalSizeRow.setBorder(emptyBorder);
          cacheTotalSizeRow.add(new JLabel("Cache size (bytes) "), BorderLayout.WEST);
@@ -287,19 +287,19 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          cacheSizeDisplay.setFont(countFonts);
          cacheTotalSizeRow.add(cacheSizeDisplay, BorderLayout.EAST);
          updateCacheSizeDisplay();
-         
+
          // Lay 'em out in the grid...
          organization.add(placementPolicyRow);
          organization.add(cacheNumberBlocksRow);
          organization.add(replacementPolicyRow);
          organization.add(cacheBlockSizeRow);
          //organization.add(cachableAddressesRow);
-         organization.add(cacheSetSizeRow);  
-         organization.add(cacheTotalSizeRow);      
+         organization.add(cacheSetSizeRow);
+         organization.add(cacheTotalSizeRow);
          return organization;
       }
-      
-      
+
+
       ////////////////////////////////////////////////////////////////////////////
        private JComponent buildPerformanceArea() {
          JPanel performance = new JPanel(new GridLayout(1,2));
@@ -315,7 +315,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          memoryAccessCountDisplay.setBackground(backgroundColor);
          memoryAccessCountDisplay.setFont(countFonts);
          memoryAccessCountRow.add(memoryAccessCountDisplay, BorderLayout.EAST);
-      
+
          JPanel cacheHitCountRow = getPanelWithBorderLayout();
          cacheHitCountRow.setBorder(emptyBorder);
          cacheHitCountRow.add(new JLabel("Cache Hit Count "), BorderLayout.WEST);
@@ -325,7 +325,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          cacheHitCountDisplay.setBackground(backgroundColor);
          cacheHitCountDisplay.setFont(countFonts);
          cacheHitCountRow.add(cacheHitCountDisplay, BorderLayout.EAST);
-      
+
          JPanel cacheMissCountRow = getPanelWithBorderLayout();
          cacheMissCountRow.setBorder(emptyBorder);
          cacheMissCountRow.add(new JLabel("Cache Miss Count "), BorderLayout.WEST);
@@ -334,8 +334,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          cacheMissCountDisplay.setEditable(false);
          cacheMissCountDisplay.setBackground(backgroundColor);
          cacheMissCountDisplay.setFont(countFonts);
-         cacheMissCountRow.add(cacheMissCountDisplay, BorderLayout.EAST);     
-      
+         cacheMissCountRow.add(cacheMissCountDisplay, BorderLayout.EAST);
+
          JPanel cacheHitRateRow = getPanelWithBorderLayout();
          cacheHitRateRow.setBorder(emptyBorder);
          cacheHitRateRow.add(new JLabel("Cache Hit Rate "), BorderLayout.WEST);
@@ -344,11 +344,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          cacheHitRateDisplay.setForeground(Color.BLUE);
          cacheHitRateDisplay.setBackground(backgroundColor);
          cacheHitRateDisplay.setFont(countFonts);
-         cacheHitRateRow.add(cacheHitRateDisplay, BorderLayout.EAST); 
-      
+         cacheHitRateRow.add(cacheHitRateDisplay, BorderLayout.EAST);
+
          resetCounts();
          updateDisplay();
-      
+
          // Vertically align these 4 measures in a grid, then add to left column of main grid.
          JPanel performanceMeasures = new JPanel(new GridLayout(4,1));
          performanceMeasures.add(memoryAccessCountRow);
@@ -356,7 +356,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          performanceMeasures.add(cacheMissCountRow);
          performanceMeasures.add(cacheHitRateRow);
          performance.add(performanceMeasures);
-         
+
          // LET'S TRY SOME ANIMATION ON THE RIGHT SIDE...
          animations = new Animation();
          animations.fillAnimationBoxWithCacheBlocks();
@@ -369,7 +369,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          animationsLabel.add(tableTitle1);
          animationsLabel.add(tableTitle2);
          Dimension colorKeyBoxSize = new Dimension(8,8);
-         
+
          JPanel emptyKey = new JPanel(new FlowLayout(FlowLayout.LEFT));
          JPanel emptyBox = new JPanel();
          emptyBox.setSize(colorKeyBoxSize);
@@ -377,41 +377,41 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          emptyBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
          emptyKey.add(emptyBox);
          emptyKey.add(new JLabel(" = empty"));
-         
+
          JPanel missBox = new JPanel();
          JPanel missKey = new JPanel(new FlowLayout(FlowLayout.LEFT));
          missBox.setSize(colorKeyBoxSize);
          missBox.setBackground(animations.missColor);
          missBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
          missKey.add(missBox);
-         missKey.add(new JLabel(" = miss"));   
-      
-         JPanel hitKey = new JPanel(new FlowLayout(FlowLayout.LEFT));     
-         JPanel hitBox = new JPanel();     
+         missKey.add(new JLabel(" = miss"));
+
+         JPanel hitKey = new JPanel(new FlowLayout(FlowLayout.LEFT));
+         JPanel hitBox = new JPanel();
          hitBox.setSize(colorKeyBoxSize);
          hitBox.setBackground(animations.hitColor);
-         hitBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));   
+         hitBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
          hitKey.add(hitBox);
          hitKey.add(new JLabel(" = hit"));
-         
+
          animationsLabel.add(emptyKey);
          animationsLabel.add(hitKey);
          animationsLabel.add(missKey);
          animationsLabel.add(Box.createVerticalGlue());
          animationsPanel.add(animationsLabel);
          animationsPanel.add(animations.getAnimationBox());
-      
-         performance.add(animationsPanel); 
-         return performance;     
+
+         performance.add(animationsPanel);
+         return performance;
       }
-   
-   
-   
+
+
+
       //////////////////////////////////////////////////////////////////////////////////////
       //  Rest of the protected methods.  These override do-nothing methods inherited from
       //  the abstract superclass.
       //////////////////////////////////////////////////////////////////////////////////////
-      
+
       /**
        * Apply caching policies and update display when connected MIPS program accesses (data) memory.
        * @param memory the attached memory
@@ -424,17 +424,17 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          if (cacheAccessResult.isHit()) {
             cacheHitCount++;
             animations.showHit(cacheAccessResult.getBlock());
-         } 
+         }
          else {
             cacheMissCount++;
             animations.showMiss(cacheAccessResult.getBlock());
          }
          cacheHitRate = cacheHitCount / (double)memoryAccessCount;
       }
-      
-   
-      /** 
-       *  Initialize all JComboBox choice structures not already initialized at declaration. 
+
+
+      /**
+       *  Initialize all JComboBox choice structures not already initialized at declaration.
        *  Also creates initial default cache object. Overrides inherited method that does nothing.
        */
        protected void initializePreGUI() {
@@ -458,18 +458,18 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          }
          cacheSetSizeChoices = determineSetSizeChoices(defaultCacheBlockCountIndex,defaultPlacementPolicyIndex);
       }
-   
-   
-      /** 
+
+
+      /**
        *  The only post-GUI initialization is to create the initial cache object based on the default settings
        *  of the various combo boxes. Overrides inherited method that does nothing.
        */
-      
+
        protected void initializePostGUI() {
          theCache = createNewCache();
       }
-      
-      
+
+
       /**
        *  Method to reset cache, counters and display when the Reset button selected.
        *  Overrides inherited method that does nothing.
@@ -481,7 +481,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          animations.reset();
          resetLogDisplay();
       }
-   
+
       /**
        *  Updates display immediately after each update (AccessNotice) is processed, after
        *  cache configuration changes as needed, and after each execution step when Mars
@@ -493,12 +493,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          updateCacheMissCountDisplay();
          updateCacheHitRateDisplay();
       }
-   
-      
+
+
       //////////////////////////////////////////////////////////////////////////////////////
       //  Private methods defined to support the above.
       //////////////////////////////////////////////////////////////////////////////////////
-   
+
       // Will determine range of choices for "set size in blocks", which is determined both by
       // the number of blocks in the cache and by placement policy.
        private String[] determineSetSizeChoices(int cacheBlockCountIndex, int placementPolicyIndex) {
@@ -516,11 +516,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                break;
             case FULL   :   // 1 set total, so set size fixed at current number of blocks
             default     :   choices = new String[1];
-               choices[0] = cacheBlockCountChoices[lastBlockCountIndex]; 
-         }     
+               choices[0] = cacheBlockCountChoices[lastBlockCountIndex];
+         }
          return choices;
       }
-      
+
       // Update the Set Size combo box selection in response to other selections..
        private void updateCacheSetSizeSelector() {
          cacheSetSizeSelector.setModel(
@@ -529,72 +529,72 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                           cachePlacementSelector.getSelectedIndex()
                     )));
       }
-      
+
       // create and return a new cache object based on current specs
        private AbstractCache createNewCache() {
          AbstractCache theNewCache = null;
          int setSize = 1;
          try {
             setSize = Integer.parseInt((String)cacheSetSizeSelector.getSelectedItem());
-         } 
+         }
              catch (NumberFormatException nfe) { // if this happens its my fault!
             }
          theNewCache = new AnyCache(
                        cacheBlockCountChoicesInt[cacheBlockCountSelector.getSelectedIndex()],
                        cacheBlockSizeChoicesInt[cacheBlockSizeSelector.getSelectedIndex()],
-                       setSize);            
+                       setSize);
          return theNewCache;
       }
-      
+
        private void resetCounts() {
          memoryAccessCount = 0;
          cacheHitCount = 0;
          cacheMissCount = 0;
          cacheHitRate = 0.0;
       }
-      
-   
+
+
        private void  updateMemoryAccessCountDisplay() {
          memoryAccessCountDisplay.setText(new Integer(memoryAccessCount).toString());
       }
-      
+
        private void  updateCacheHitCountDisplay() {
          cacheHitCountDisplay.setText(new Integer(cacheHitCount).toString());
       }
-      
+
        private void  updateCacheMissCountDisplay() {
          cacheMissCountDisplay.setText(new Integer(cacheMissCount).toString());
       }
-      
+
        private void  updateCacheHitRateDisplay() {
          cacheHitRateDisplay.setValue((int) Math.round(cacheHitRate*100));
       }
-      
+
        private void updateCacheSizeDisplay() {
          int cacheSize = cacheBlockSizeChoicesInt[cacheBlockSizeSelector.getSelectedIndex()] *
                      cacheBlockCountChoicesInt[cacheBlockCountSelector.getSelectedIndex()] *
                      Memory.WORD_LENGTH_BYTES;
          cacheSizeDisplay.setText(Integer.toString(cacheSize));
       }
-      
+
        private JPanel getPanelWithBorderLayout() {
          return new JPanel(new BorderLayout(2,2));
       }
-      
+
        private void resetLogDisplay() {
          logText.setText("");
       }
-      
+
        private void writeLog(String text) {
          logText.append(text);
          logText.setCaretPosition(logText.getDocument().getLength());
       }
-      
-   
+
+
       //////////////////////////////////////////////////////////////////////////////////////
       //  Specialized inner classes for cache modeling and animation.
       //////////////////////////////////////////////////////////////////////////////////////
-      
+
       /////////////////////////////////////////////////////////////////////////
       // Represents a block in the cache.  Since we are only simulating
       // cache performance, there's no need to actually store memory contents.
@@ -610,7 +610,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.mostRecentAccessTime = -1;
          }
       }
-   
+
       /////////////////////////////////////////////////////////////////////////
       // Represents the outcome of a cache access.  There are two parts:
       // whether it was a hit or not, and in which block is the value stored.
@@ -630,13 +630,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             return blockNumber;
          }
       }
-         
+
       //////////////////////////////////////////////////////////////////////
       // Abstract Cache class.  Subclasses will implement specific policies.
        private abstract class AbstractCache {
          private int numberOfBlocks, blockSizeInWords, setSizeInBlocks, numberOfSets;
          protected CacheBlock[] blocks;
-         
+
           protected AbstractCache(int numberOfBlocks, int blockSizeInWords, int setSizeInBlocks) {
             this.numberOfBlocks = numberOfBlocks;
             this.blockSizeInWords = blockSizeInWords;
@@ -645,57 +645,57 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.blocks = new CacheBlock[numberOfBlocks];
             this.reset();
          }
-         
+
           public int getNumberOfBlocks() {
             return this.numberOfBlocks;
          }
-         
+
           public int getNumberOfSets() {
             return this.numberOfSets;
          }
-            
+
           public int getSetSizeInBlocks() {
             return this.setSizeInBlocks;
          }
-         
+
           public int getBlockSizeInWords() {
             return this.blockSizeInWords;
          }
-            
+
           public int getCacheSizeInWords() {
             return this.numberOfBlocks * this.blockSizeInWords;
          }
-            
+
           public int getCacheSizeInBytes() {
             return this.numberOfBlocks * this.blockSizeInWords * Memory.WORD_LENGTH_BYTES;
          }
 
-      
-        // This will work regardless of placement. 
+
+        // This will work regardless of placement.
         // For direct map, #sets==#blocks
         // For full assoc, #sets==1 so anything % #sets == 0
         // For n-way assoc, it extracts the set bits in address.
           public int getSetNumber(int address) {
             return address / Memory.WORD_LENGTH_BYTES / this.blockSizeInWords % this.numberOfSets;
          }
-         
+
           // This will work regardless of placement policy (direct map, n-way or full assoc)
           public int getTag(int address) {
             return address / Memory.WORD_LENGTH_BYTES / this.blockSizeInWords / this.numberOfSets;
          }
-         
+
           // This will work regardless of placement policy (direct map, n-way or full assoc)
           // Returns absolute block offset into the cache.
           public int getFirstBlockToSearch(int address) {
             return this.getSetNumber(address) * this.setSizeInBlocks;
          }
-         
+
           // This will work regardless of placement policy (direct map, n-way or full assoc)
           // Returns absolute block offset into the cache.
           public int getLastBlockToSearch(int address) {
             return this.getFirstBlockToSearch(address) + this.setSizeInBlocks - 1;
-         }  
-         
+         }
+
          /* Reset the cache contents. */
           public void reset() {
             for (int i=0; i<numberOfBlocks; i++) {
@@ -703,12 +703,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             }
             System.gc(); // scoop 'em up now
          }
-         
+
          // Subclass must implement this according to its policies
           public abstract CacheAccessResult isItAHitThenReadOnMiss(int address);
       }
-            
-      
+
+
       //////////////////////////////////////////////////////////////////////////////
       // Implements any of the well-known cache organizations.  Physical memory
       // address is partitioned depending on organization:
@@ -761,12 +761,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           public AnyCache(int numberOfBlocks, int blockSizeInWords, int setSizeInBlocks) {
             super(numberOfBlocks, blockSizeInWords, setSizeInBlocks);
          }
-         
+
           Queue<CacheBlock> fifoQueue = new LinkedList<CacheBlock>(); // queue of CacheBlocks, used for the FIFO policy
 
           private final int SET_FULL=0, HIT=1, MISS=2;
-         
-          // This method works for any of the placement policies: 
+
+          // This method works for any of the placement policies:
           // direct mapped, full associative or n-way set associative.
           public CacheAccessResult isItAHitThenReadOnMiss(int address) {
             int result = SET_FULL;
@@ -813,15 +813,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                 fifoQueue.add(blocks[blockNumber]); // CHANGE: if the cache is full, we insert the block that is replacing old data into the queue
             }
             return new CacheAccessResult(result==HIT, blockNumber);
-         }      
-         
+         }
+
           // call this if all blocks in the set are full.  If the set contains more than one block,
           // It will pick on to replace based on selected replacement policy.
           private int selectBlockToReplace(int first, int last) {
             int replaceBlock = first;
-            if (first!=last) { 
+            if (first!=last) {
                switch (cacheReplacementSelector.getSelectedIndex()) {
-                  case RANDOM : 
+                  case RANDOM :
                      replaceBlock = first + randu.nextInt(last-first+1);
                      if (debug) //System.out.print
                         writeLog(" -- Random replace block "+replaceBlock+"\n");
@@ -841,12 +841,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                      int mostRAT = 0; // keep track of the block that has been most recently accessed
                      for (int block = first; block <= last; block++) {
                         if (blocks[block].mostRecentAccessTime > mostRAT) {
-                           leastRAT = blocks[block].mostRecentAccessTime;
+                           mostRAT = blocks[block].mostRecentAccessTime;
                            replaceBlock = block; // at the end of the loop, this block should have the highest mostRecentAccess time value
                         }
                      }
                      if (debug) //System.out.print
-                        writeLog(" -- MRU replace block "+replaceBlock+"; unused since ("+leastRAT+")\n");
+                        writeLog(" -- MRU replace block "+replaceBlock+"; unused since ("+mostRAT+")\n");
                      break;
                   case FIFO: // CHANGE: FIFO case
                   default:
@@ -854,15 +854,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
                       if (!fifoQueue.isEmpty()) { // if the queue is not empty, the target block to replace is the next block to be removed
                         targetBlock = fifoQueue.remove();
-                        
+
                         for (int blockNumber = first; blockNumber <= last; blockNumber++) {
                           CacheBlock block = blocks[blockNumber];
                           if (block.valid && block.tag==targetBlock.tag) {//  it's a hit!
                             replaceBlock = blockNumber;
                             writeLog("***FIFO replace block"+replaceBlock);
                             break;
-                          }  
-                        }                                        
+                          }
+                        }
                       } else {
                         writeLog("FIFO Queue is empty");
                       }
@@ -871,44 +871,44 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             return replaceBlock;
          }
       }
-      
+
       //////////////////////////////////////////////////////////////
       //  Class to display animated cache
       //
        private class Animation {
-       
+
          private Box animation;
          private JTextField[] blocks;
          public final Color hitColor = Color.GREEN;
          public final Color missColor = Color.RED;
          public final Color defaultColor = Color.WHITE;
-       
+
           public Animation() {
             animation = Box.createVerticalBox();
          }
-       
+
           private Box getAnimationBox() {
             return animation;
          }
-         
+
           public int getNumberOfBlocks() {
             return (blocks==null)? 0 : blocks.length;
          }
-          
+
           public void showHit(int blockNum) {
             blocks[blockNum].setBackground(hitColor);
          }
-         
+
           public void showMiss(int blockNum) {
             blocks[blockNum].setBackground(missColor);
          }
-         
+
           public void reset() {
             for (int i=0; i<blocks.length; i++){
                blocks[i].setBackground(defaultColor);
             }
          }
-           
+
             // initialize animation of cache blocks
           private void fillAnimationBoxWithCacheBlocks() {
             animation.setVisible(false);
@@ -930,8 +930,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             animation.repaint();
             animation.setVisible(true);
          }
-      
+
       }
-      
-   
+
+
    }

@@ -1,5 +1,5 @@
 ## About this project
-The addition to the MARS assembler of the First In First Out and the Most Recently Used replacement policies were written by Bonnie Ishiguro, Apurva Raman, and Shruti Iyer as part of the Fall 2016 Computer Architecture course at Olin College of Engineering. The website for our project can be found [here] [11].
+The addition to the MARS assembler of the First In First Out and the Most Recently Used replacement policies were written by Bonnie Ishiguro, Apurva Raman, and Shruti Iyer as part of the Fall 2016 Computer Architecture course at Olin College of Engineering. The website for our project with our [research and writeup] [12] can be found [here] [11].
 
 We modified a mirror of the MARS assembler found [here] [9].
 
@@ -41,3 +41,4 @@ To build and run this version of Mars, run: bash buildmars2.sh.  The Data Cache 
   [9]: https://github.com/captainepoch/MARS_Assembler.git
   [10]: https://github.com/bishiguro/MARS_Assembler/blob/master/CachingAlgorithmPerformanceAnalysis.pdf
   [11]: https://bishiguro.github.io/MARS_Assembler/
+  [12]: https://github.com/bishiguro/MARS_Assembler/blob/master/MemoryWrittenGuide.pdf

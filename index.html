@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Memory Optimization Techniques for Modern Processors</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Memory Optimization Techniques for Modern Processors</h1>
+      <h2 class="project-tagline"></h2>
+      <!-- <a href="https://github.com/shrutiyer/VMandCache" class="btn">View on GitHub</a>
+      <a href="https://github.com/shrutiyer/VMandCache/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/shrutiyer/VMandCache/tarball/master" class="btn">Download .tar.gz</a>-->
+    </section>
+
+    <section class="main-content">
+      <h3>
+<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Project Journey</h3>
+
+<p>This project was an exploration of memory optimization techniques for the modern processor.  We researched cache memory and virtual memory, and explored the effects of cache replacement policies on cache performance.  This involved familiarizing ourselves with the purpose, design decisions, and optimizations behind the standard memory hierarchy in order to better understand how memory interacts with the processor.  We were interested in learning how cache memory is used to reduce the processor’s overall access time when executing a program.  We also wanted to understand the workings of virtual memory and how it is used to extend the memory available to an executing program as well as how the memory management works when multiple programs are running simultaneously. </p>
+
+<p>Our team was excited about these topics because our understanding of memory was fairly basic.  The only memory structure we had built or studied was a register file.  After having built a CPU, we wanted to understand how caching is used to improve overall processor performance.  We decided to write a guide that would teach the reader the basics of the standard memory hierarchy, cache memory, and virtual memory and give the reader enough information to consider the various design decisions necessary for implementing any of these.</p>
+<p>In doing our research on memory, we developed several key insights that guided our understanding of the topic.  Our first insight is that every level of the memory hierarchy, with the exception of the magnetic disk, serves as a cache to the level below.  A cache is a smaller and faster form of storage that serves to decrease the time it takes for the processor to access memory during program execution, and the levels of the hierarchy grow in both size and access time the further they are from the processor.  Building off of this idea, virtual memory allows main memory to act as a cache to the magnetic disk.  In terms of cache replacement policies, the performance of these algorithms are dependent on the program being executed, particularly on whether the program exhibits more temporal or spatial locality.  Our full research and <a href="https://github.com/bishiguro/MARS_Assembler/blob/master/CachingAlgorithmPerformanceAnalysis.pdf">analysis</a> can be found at <a href="https://github.com/bishiguro/MARS_Assembler">https://github.com/bishiguro/MARS_Assembler</a>.</p>
+<p>Our team decided on implementing cache replacement policies and analyzing their effect on cache performance.  We studied the Data Cache Simulator tool within the MARS MIPS Assembler, which allows the user to analyze the performance of a cache based on the following factors: placement policy, block replacement policy, set size, number of blocks, block size, and cache size.  We forked the Java source code of this program and modified it to include two additional replacement policies, Most Recently Used and First In First Out.</p>
+<p>We largely adapted our Most Recently Used policy from the Least Recently Used policy which was already implemented in the Data Cache Simulator.  Rather than calculating which block in the cache was accessed the longest amount of time ago, we calculate which block was accessed most recently and replace it with the new data that is currently being inserted into the cache.</p>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #008800; font-weight: bold">case</span> <span style="color: #997700; font-weight: bold">MRU:</span>
+    <span style="color: #333399; font-weight: bold">int</span> mostRAT <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span><span style="color: #333333">;</span> <span style="color: #888888">// keep track of the block that has been most recently accessed</span>
+    <span style="color: #008800; font-weight: bold">for</span> <span style="color: #333333">(</span><span style="color: #333399; font-weight: bold">int</span> block <span style="color: #333333">=</span> first<span style="color: #333333">;</span> block <span style="color: #333333">&lt;=</span> last<span style="color: #333333">;</span> block<span style="color: #333333">++)</span> <span style="color: #333333">{</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #333333">(</span>blocks<span style="color: #333333">[</span>block<span style="color: #333333">].</span><span style="color: #0000CC">mostRecentAccessTime</span> <span style="color: #333333">&gt;</span> mostRAT<span style="color: #333333">)</span> <span style="color: #333333">{</span>
+        mostRAT <span style="color: #333333">=</span> blocks<span style="color: #333333">[</span>block<span style="color: #333333">].</span><span style="color: #0000CC">mostRecentAccessTime</span><span style="color: #333333">;</span>
+        replaceBlock <span style="color: #333333">=</span> block<span style="color: #333333">;</span> <span style="color: #888888">// at the end of the loop, this block should have the highest mostRecentAccess time value</span>
+    <span style="color: #333333">}</span>
+<span style="color: #333333">}</span>
+<span style="color: #008800; font-weight: bold">break</span><span style="color: #333333">;</span>
+</pre></div>
+
+
+<p>
+We implemented First In First Out (FIFO) using a Queue of CacheBlocks that keeps track of the blocks in the cache.  Cache blocks are added to this queue when there is a cache miss, and they are replaced in the order in which they were inserted.</p>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #008800; font-weight: bold">case</span> <span style="color: #997700; font-weight: bold">FIFO:</span>
+    CacheBlock targetBlock<span style="color: #333333">;</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #333333">(!</span>fifoQueue<span style="color: #333333">.</span><span style="color: #0000CC">isEmpty</span><span style="color: #333333">())</span> <span style="color: #333333">{</span> <span style="color: #888888">// if the queue is not empty, the target block to replace is the next block to be removed</span>
+        targetBlock <span style="color: #333333">=</span> fifoQueue<span style="color: #333333">.</span><span style="color: #0000CC">remove</span><span style="color: #333333">();</span>
+        <span style="color: #008800; font-weight: bold">for</span> <span style="color: #333333">(</span><span style="color: #333399; font-weight: bold">int</span> blockNumber <span style="color: #333333">=</span> first<span style="color: #333333">;</span> blockNumber <span style="color: #333333">&lt;=</span> last<span style="color: #333333">;</span> blockNumber<span style="color: #333333">++)</span> <span style="color: #333333">{</span>
+            CacheBlock block <span style="color: #333333">=</span> blocks<span style="color: #333333">[</span>blockNumber<span style="color: #333333">];</span>
+            <span style="color: #008800; font-weight: bold">if</span> <span style="color: #333333">(</span>block<span style="color: #333333">.</span><span style="color: #0000CC">valid</span> <span style="color: #333333">&amp;&amp;</span> block<span style="color: #333333">.</span><span style="color: #0000CC">tag</span><span style="color: #333333">==</span>targetBlock<span style="color: #333333">.</span><span style="color: #0000CC">tag</span><span style="color: #333333">)</span> <span style="color: #333333">{</span>
+                replaceBlock <span style="color: #333333">=</span> blockNumber<span style="color: #333333">;</span>
+                writeLog<span style="color: #333333">(</span><span style="background-color: #fff0f0">&quot;***FIFO replace block&quot;</span><span style="color: #333333">+</span>replaceBlock<span style="color: #333333">);</span>
+                <span style="color: #008800; font-weight: bold">break</span><span style="color: #333333">;</span>
+            <span style="color: #333333">}</span>
+        <span style="color: #333333">}</span>
+    <span style="color: #333333">}</span> <span style="color: #008800; font-weight: bold">else</span> <span style="color: #333333">{</span>
+        writeLog<span style="color: #333333">(</span><span style="background-color: #fff0f0">&quot;FIFO Queue is empty&quot;</span><span style="color: #333333">);</span>
+    <span style="color: #333333">}</span>
+</pre></div>
+
+<p>
+The three assembly programs that we used for analysis were row-major, column-major, and Fibonacci.  We learned that the effectiveness of cache replacement policies are dependent on the how the running programs are written.  Each replacement policy employs spatial and temporal locality differently, so understanding the locality in the programs being run on the processor will help determine which policy to use, along with time and area analysis.
+</p>
+
+<h3>
+<a id="designer-templates" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Build Instructions
+</h3>
+
+<p>The code for our forked version of the Mars Assembler can be found in this <a href="https://github.com/bishiguro/MARS_Assembler">GitHub repository</a>.</p>
+<p>
+To build and run this version of Mars, run: bash buildmars2.sh.  The Data Cache Simulator can be found in Tools > Data Cache Simulator, and our additional policies can be found in the “Block Replacement Policy” drop-down menu.
+</p>
+
+<h3>
+<a id="creating-pages-manually" class="anchor" href="#creating-pages-manually" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Reflection</h3>
+
+<p>Our team found it extremely valuable to maintain a living work plan, as it it helped us plan deliverables for each meeting and reevaluate our goals at each step of the process.  Although we carried out the research phase of our project according to plan, the implementation phase diverged strongly from our original ideas.  
+We spent roughly the predicted amount of time on the research phase of our project.  One difficulty we ran into during this phase was forming a coherent picture of how program data is passed through the memory hierarchy so that it is accessible to a processor.  We each focused on separate areas of the topic during our initial research, so we chose to solidify our overall understanding by teaching each other, creating block diagrams and descriptive figures, and asking each other questions.</p>
+<p>Since memory is a broad topic, we had to make decisions about which areas to understand in depth and which to acknowledge and set aside.  For example, although we learned about the workings of the hierarchy from the magnetic disk to the L1 cache, we did not fully explore the process of bootstrapping, or loading programs into main memory after power-on.  We also did not fully research the process of segmentation, or virtual memory’s role in memory protection when multiple programs are running concurrently.  These are three areas that would be valuable to explore in our future work.</p>
+<p>During our implementation phase, rather than implementing a full memory hierarchy as a base for implementing and analyzing cache replacement policies, we spent time researching alternate methods for simulating caches, as we did not feel that we had enough time to implement memory from scratch.  As we mentioned above, we discovered a mirror of the Mars Assembler source code, which has a Data Cache Simulator tool, and ultimately decided to build upon its existing functionality to explore the performance of various cache replacement policies.</p>
+<p>We identified multiple avenues of exploration for moving forward with this project.  A first step would be to research more complex cache replacement policies, such as Pseudo-LRU or Adaptive Replacement Cache, and add them to our modified version of the MARS Data Cache Simulator.  This would allow us to have more data with which to analyze the effects of replacement policies on cache performance.  It would also be valuable to perform a greater volume of tests to get a stronger sense of which replacement policies perform better for programs that express a particular type of locality.  We could also determine how costly each of the policies would be to implement compared to each other.  For instance, although LRU is a common choice for caches because it caters to programs with strong temporal locality, a full version of it is costly to implement because it requires keeping track of access times for each block in the cache.  Cache hit rate versus the hardware cost is one of the tradeoffs to consider when choosing cache replacement policies for a particular processor.
+</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/shrutiyer/VMandCache">Vmandcache</a> is maintained by <a href="https://github.com/shrutiyer">shrutiyer</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
